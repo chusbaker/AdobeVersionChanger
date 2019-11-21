@@ -51,25 +51,21 @@ class Window(QWidget):
         self.layout.addWidget(self.label, 1, 23, 30, 10)
         self.layout.addWidget(self.progressbar, 2, 0, 1, 58)
 
-
-
         QToolTip.setFont(QFont('Helvetica', 20))
         self.setToolTip(
             '''Drag and Drop into this window a <b>Premiere Project File or Motion Graphics File</b> 
             to be converted. You will find a file named as the Project or Motion Graphic file with 
             the extension <b>"_changed"</b> in that same location.'''
                         )
-
         self.setAcceptDrops(True)
 
+        
     def progressStart(self):
-
         animation = QPropertyAnimation(self.progressbar, b'value', self)
         x = int(os.stat(self.userInput).st_size) / 40
         # print(x)
         animation.setDuration(x)
         animation.setLoopCount(1)
-
         animation.setKeyValueAt(0, self.progressbar.minimum())
         animation.setKeyValueAt(0.1, 10)
         animation.setKeyValueAt(0.2, 30)
@@ -90,6 +86,7 @@ class Window(QWidget):
         if e.mimeData().hasUrls():
             e.acceptProposedAction()
 
+            
     def dropEvent(self, e):
         for url in e.mimeData().urls():
             self.userInput = url.toLocalFile()
@@ -108,23 +105,12 @@ class Window(QWidget):
         else:
             self.timer.start(100, self)
 
-    def resetBar(self):
-        self.step = 0
-        self.progressBar.setValue(0)
-
-    def timerEvent(self, event):
-        if self.step >= 100:
-            self.timer.stop()
-            return
-
-        self.step += 1
-        self.progressBar.setValue(self.step)
-
 
 def gunzip_shutil(source_filepath, dest_filepath, block_size=65536):
     with gzip.open(source_filepath, 'rb') as s_file, \
             open(dest_filepath, 'wb') as d_file:
         shutil.copyfileobj(s_file, d_file, block_size)
+        
 
 def convertPP(userInput):
     # file and path separation
@@ -137,9 +123,7 @@ def convertPP(userInput):
     # file2convert_ext = file2convert.split(".")[1]   # store the extension only
     path2file = os.path.dirname(os.path.abspath(f)) # takes the path to the file
 
-
     # _____ convertion begins____
-
     # step 1: create a new folder and copy the file to the folder renamed with sufix "_changed"
     # build the path
     path_1 = (path2file, file2comvert_name)         # the new directory is path + file name
@@ -152,7 +136,6 @@ def convertPP(userInput):
 
     # create folder
     os.makedirs(new_dir)
-
     # build the new file name
     new_name = (file2comvert_name, "changed")       # create name of new file with no extension just add sufix "_changed"
     new_file_name = "_".join(new_name)              # done - apply to the new xml name and new project name
@@ -200,7 +183,6 @@ def convertMG(userInput):
 
 
     # _____ convertion begins____
-
     # step 1: create a new folder and copy the file to the folder renamed with sufix "_changed"
     # build the path
     path_1 = (path2file, file2comvert_name)         # the new directory is path + file name
@@ -210,14 +192,12 @@ def convertMG(userInput):
 
     with zipfile.ZipFile(userInput,"r") as zip_ref:
         zip_ref.extractall(new_dir)
-
     file2change = new_dir + "\\definition.json"
 
     with open(file2change, "r", encoding="utf8") as f:
         content = f.read()
         c = json.loads(content.replace('\r\n', ''))
         c['apiVersion'] = "1.4"
-
     os.remove(file2change)
 
     with open(file2change, 'w') as f:
@@ -225,7 +205,6 @@ def convertMG(userInput):
 
     # # step 4: compress the file to a gz and rename to a motion project file
     new_extension = '.mogrt'
-
     shutil.make_archive(new_dir, 'zip', new_dir)  # (name of file to zip, ext, base dir, dir where the files to zip are)
 
     # change extension
@@ -254,6 +233,5 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     w = Window()
-
     w.show()
     sys.exit(app.exec_())
